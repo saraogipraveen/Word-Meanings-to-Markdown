@@ -12,6 +12,9 @@ AUTHOR: AshAwe (https://github.com/ashawe)
 let fs = require("fs");
 const http = require('https');
 
+//GLOBALS
+const SYNONYM_LIMIT = 5;
+
 // reads words from a txt file (comma separated). O/p Array of words.
 function wordsFromFileToArray(fileName) {
     const data = fs.readFileSync(fileName, { encoding: 'utf8', flag: 'r' });
@@ -65,9 +68,20 @@ function writeMeaningToFile(inputStream, filename) {
     });
     if (isSynonymAvailable)
         // remove duplicate and write comma separated synonyms
-        toWrite += "    - " + synonyms + [...new Set(synonymsList)].join(', ') + "\n";
-    stream.write(toWrite);
-    stream.end();
+        try {
+
+            let uniqueSynonyms = [...new Set(synonymsList)]
+            if(SYNONYM_LIMIT < 0){
+                throw 'Limit should be Positive'
+            }
+            let synonymsCommaSeparated = uniqueSynonyms.splice(0,SYNONYM_LIMIT || uniqueSynonyms.length).join(', ')
+            toWrite += "    - " + synonyms + synonymsCommaSeparated + "\n";
+            stream.write(toWrite);
+            stream.end();
+        }
+        catch(error){
+        console.log(error)
+        }
 }
 
 // a handler function to wait for the HTTP response and then call function which writes meaning to file
